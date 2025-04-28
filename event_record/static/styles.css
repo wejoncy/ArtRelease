@@ -1,0 +1,260 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    /* Add CJK-friendly fonts to the stack */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft YaHei', 'SimSun', 'Meiryo', 'Malgun Gothic', sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.navigation-links {
+    text-align: center;
+    margin-bottom: 20px;
+    display: flex; /* Use flexbox for alignment */
+    justify-content: center;
+    align-items: center;
+    gap: 15px; /* Adjust gap */
+}
+
+.navigation-links .btn {
+    margin: 0 10px;
+}
+
+.navigation-links .btn.toggle-past-btn {
+    background-color: #7f8c8d; /* Example: Grey color */
+}
+
+.navigation-links .btn.toggle-past-btn:hover {
+    background-color: #6c7a7d;
+}
+
+.card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+h2 {
+    margin-bottom: 15px;
+    color: #3498db;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="date"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box; /* Ensure padding doesn't increase size */
+}
+
+textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+.form-group small {
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 3px;
+    display: block;
+}
+
+
+.btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    text-decoration: none; /* For link buttons */
+    display: inline-flex; /* Align icon and text */
+    align-items: center;
+    gap: 5px; /* Space between icon and text */
+}
+
+.btn:hover {
+    background-color: #2980b9;
+}
+
+.delete-btn {
+    background-color: #e74c3c;
+}
+
+.delete-btn:hover {
+    background-color: #c0392b;
+}
+
+.event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.event {
+    background-color: #f9f9f9;
+    border-left: 4px solid #3498db;
+    padding: 15px;
+    border-radius: 4px;
+    /* Removed margin-bottom, using gap in event-list now */
+}
+
+.event.today {
+    border-left: 4px solid #e74c3c;
+    background-color: #fff5f5;
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.user {
+    font-weight: bold;
+    color: #2c3e50;
+    display: inline;
+}
+
+.time {
+    color: #7f8c8d;
+    font-size: 0.9em;
+     display: inline;
+}
+
+.event-body {
+    margin-bottom: 10px; /* Space between message and actions */
+    word-wrap: break-word;
+}
+
+.event-body pre {
+    margin: 0;
+    padding: 5px; /* Minimal padding */
+    font-size: 0.95em; /* Slightly smaller */
+    line-height: 1.4;
+    background-color: #f0f0f0; /* Light background to see bounds */
+    border: 1px solid #e0e0e0; /* Light border */
+    border-radius: 3px;
+    white-space: pre-wrap; /* Wrap lines */
+    word-wrap: break-word; /* Break long words */
+    display: inline-block; /* Shrink to content width */
+    max-width: 100%; /* Prevent overflow */
+    text-align: left; /* Ensure left alignment */
+    box-sizing: border-box;
+}
+
+.event-body code {
+     /* Styles for code tag if needed, e.g., font */
+     font-family: Consolas, Monaco, 'Courier New', Courier, monospace, 'Microsoft YaHei', 'SimSun', 'Meiryo', 'Malgun Gothic', monospace;
+     /* Background/border are now on the pre tag */
+     color: #2F4F4F; /* Dark Slate Grey - Change this color as desired */
+}
+
+.toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.toggle-switch label {
+    margin-left: 5px;
+    font-weight: normal; /* Override potential bold */
+    margin-bottom: 0; /* Override default label margin */
+}
+
+/* Style for hidden events */
+.event.hidden-past {
+    display: none !important; /* Add !important for testing */
+}
+
+.event-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 10px; /* Add space above actions */
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; /* Adjusted margin */
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Added shadow */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1; /* Ensure consistent positioning */
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+}
+
+/* Add styles for delete confirmation modal buttons */
+#delete-modal .modal-content form {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}

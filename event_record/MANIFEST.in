@@ -1,0 +1,15 @@
+# Include the README and LICENSE files
+include README.md
+include LICENSE
+
+# Recursively include all files in the 'static' directory
+recursive-include static *
+
+# Recursively include all files in the 'template' directory
+recursive-include templates *
+
+# Include the requirements file if you have one
+include requirements.txt
+
+# Prune temporary files
+global-exclude *.py[cod] __pycache__ *.so *.dylib

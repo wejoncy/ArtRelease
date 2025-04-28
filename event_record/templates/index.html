@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Event Feed</h1>
+
+        <div class="navigation-links">
+            <a href="/manage" class="btn">Manage Events</a>
+            {# Ensure the toggle switch exists #}
+            <div class="toggle-switch">
+                <input type="checkbox" id="show-past-toggle">
+                <label for="show-past-toggle">Show Past Events</label>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Event List</h2>
+            <div class="event-list"> {# Ensure this container exists #}
+                {% if events %}
+                    {% for event in events %}
+                    {# Ensure data-time attribute is present #}
+                    <div class="event {% if event.time == today %}today{% endif %}" data-id="{{ event.id }}" data-time="{{ event.time }}">
+                        <div class="event-header">
+                            <span class="user">{{ event.user }}</span>
+                            <span class="time">{{ event.time }}</span>
+                        </div>
+                        <div class="event-body">
+                             {# Display the pre-formatted message from the backend #}
+                             <pre><code>{{ event.display_message }}</code></pre>
+                        </div>
+                        <!-- No action buttons -->
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No events yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {# Ensure today's date is passed to JS #}
+    <script>window.todayDateStr = "{{ today }}";</script>
+    {# Ensure the main script is included #}
+    <script src="{{ url_for('static', path='/script.js') }}"></script>
+</body>
+</html>

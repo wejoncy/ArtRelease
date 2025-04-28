@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Event Manager</h1>
+
+        <div class="navigation-links">
+             <a href="/" class="btn">View Event Feed</a>
+             {# Add a toggle element for JS control #}
+             <div class="toggle-switch">
+                 <input type="checkbox" id="show-past-toggle">
+                 <label for="show-past-toggle">Show Past Events</label>
+             </div>
+        </div>
+
+        <div class="card">
+            <h2>Create New Event</h2>
+            <form id="create-event-form">
+                <div class="form-group">
+                    <label for="user">User:</label>
+                    <input type="text" id="user" name="user" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message:</label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="time">Date:</label>
+                    {# Set the default value to today's date #}
+                    <input type="date" id="time" name="time" value="{{ today }}">
+                    <small>Defaults to current date</small> {# Updated help text #}
+                </div>
+                <button type="submit" class="btn">Create Event</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Event List</h2> {# Removed conditional text #}
+            <div class="event-list">
+                {% if events %}
+                    {% for event in events %}
+                    {# Ensure data-time attribute is present #}
+                    <div class="event {% if event.time == today %}today{% endif %}"
+                         data-id="{{ event.id }}"
+                         data-user="{{ event.user | escape }}"
+                         data-time="{{ event.time }}"> {# Ensure data-time is here #}
+
+                        <div class="event-header">
+                            <span class="user">{{ event.user }}</span>
+                            <span class="time">{{ event.time }}</span>
+                        </div>
+                        <div class="event-body">
+                            {# Display the pre-formatted message from the backend #}
+                            <pre><code>{{ event.display_message }}</code></pre>
+                        </div>
+                        <div class="event-actions">
+                            {# onclick call remains the same, using id #}
+                            <button class="btn edit-btn" onclick="editEvent('{{ event.id }}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn delete-btn" onclick="deleteEvent('{{ event.id }}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                     <p>No events to manage yet. Create one above!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Event Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Edit Event</h2>
+            <form id="edit-event-form">
+                <div class="form-group">
+                    <label for="edit-user">User:</label>
+                    <input type="text" id="edit-user" name="user" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-message">Message:</label>
+                    <textarea id="edit-message" name="message" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-time">Date:</label>
+                    <input type="date" id="edit-time" name="time">
+                    <small>Leave empty to use current date</small>
+                </div>
+                <button type="submit" class="btn">Update Event</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this event?</p>
+            <form id="delete-event-form">
+                <button type="submit" class="btn delete-btn">Delete</button>
+                <button type="button" class="btn" id="cancel-delete">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    {# Add script block to assign the full event data passed from backend #}
+    <script>
+      try {
+        // Assign the result of the Jinja expression directly.
+        window.allEventsData = {{ events_json | safe }};
+
+        // Verify it's an array
+        if (!Array.isArray(window.allEventsData)) {
+            window.allEventsData = []; // Fallback
+        } else {
+            // console.log("Successfully assigned allEventsData:", window.allEventsData); // Removed debug
+        }
+      } catch (e) {
+        // console.error("Error assigning or processing events_json data:", e); // Removed debug
+        window.allEventsData = []; // Fallback to empty array
+      }
+
+      // Verify the final state
+      // console.log("Final window.allEventsData:", window.allEventsData); // Removed debug
+
+    </script>
+
+    <script src="{{ url_for('static', path='/script.js') }}"></script>
+</body>
+</html>

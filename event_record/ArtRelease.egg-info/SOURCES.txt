@@ -1,0 +1,13 @@
+MANIFEST.in
+README.md
+requirements.txt
+setup.py
+ArtRelease.egg-info/PKG-INFO
+ArtRelease.egg-info/SOURCES.txt
+ArtRelease.egg-info/dependency_links.txt
+ArtRelease.egg-info/requires.txt
+ArtRelease.egg-info/top_level.txt
+static/script.js
+static/styles.css
+templates/index.html
+templates/manage.html
