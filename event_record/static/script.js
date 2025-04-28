@@ -121,44 +121,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Show/Hide Past Events Logic ---
     const showPastToggle = document.getElementById('show-past-toggle');
-    const eventListContainer = document.querySelector('.event-list');
+    const eventListContainer = document.querySelector('.event-list'); // Use a more general selector if needed
 
-    // Function to apply the filter based on checkbox state
+    // Function to apply the filter based on checkbox state (remains the same)
     function applyPastEventFilter() {
         if (!eventListContainer) {
+            // console.log("applyPastEventFilter: No event list container found."); // Debug
             return;
         }
-        if (!window.todayDateStr) {
-            return;
-        }
+        // Use window.todayDateStr if available, otherwise calculate
+        const todayStr = window.todayDateStr || new Date().toISOString().split('T')[0];
+
         if (!showPastToggle) {
+            // console.log("applyPastEventFilter: No toggle found, showing all."); // Debug
+             // If no toggle exists, ensure nothing is hidden by this logic
              eventListContainer.querySelectorAll('.event.hidden-past').forEach(el => el.classList.remove('hidden-past'));
              return;
         }
 
         const showPast = showPastToggle.checked;
+        // Select elements with 'event' class inside the container
         const events = eventListContainer.querySelectorAll('.event');
-        const todayStr = window.todayDateStr;
+        // console.log(`applyPastEventFilter: Found ${events.length} events. Show past: ${showPast}`); // Debug
 
         if (events.length === 0) {
+            // console.log("applyPastEventFilter: No event elements found to filter."); // Debug
             return;
         }
 
-        events.forEach((eventElement, index) => {
+        events.forEach((eventElement) => { // Removed index as it wasn't used
             const eventTime = eventElement.getAttribute('data-time');
 
             if (!eventTime) {
-                eventElement.classList.remove('hidden-past');
+                // console.log("applyPastEventFilter: Event element missing data-time, showing.", eventElement); // Debug
+                eventElement.classList.remove('hidden-past'); // Ensure elements without time are shown
                 return;
             }
 
             const isPast = eventTime < todayStr;
+            // console.log(`applyPastEventFilter: Event time ${eventTime}, isPast: ${isPast}`); // Debug
 
             if (!showPast && isPast) {
                 // Hide past events
+                // console.log("applyPastEventFilter: Hiding past event.", eventElement); // Debug
                 eventElement.classList.add('hidden-past');
             } else {
                 // Show current/future events, or all events if showPast is true
+                // console.log("applyPastEventFilter: Showing event.", eventElement); // Debug
                 eventElement.classList.remove('hidden-past');
             }
         });
@@ -166,6 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add listener to the toggle
     if (showPastToggle) {
+        // Set initial checkbox state from localStorage (still useful for visual consistency)
         const savedPreference = localStorage.getItem('showPastEvents');
         if (savedPreference === 'true') {
             showPastToggle.checked = true;
@@ -173,14 +183,14 @@ document.addEventListener('DOMContentLoaded', () => {
              showPastToggle.checked = false;
         }
 
+        // Add the change listener which WILL call applyPastEventFilter on toggle
         showPastToggle.addEventListener('change', () => {
             localStorage.setItem('showPastEvents', showPastToggle.checked);
-            applyPastEventFilter();
+            applyPastEventFilter(); // Apply filter when checkbox changes
         });
 
-        // Apply filter on initial page load
-        applyPastEventFilter();
     } else {
+         // Fallback if no toggle exists (e.g., on a different page)
          const events = eventListContainer?.querySelectorAll('.event.hidden-past');
          events?.forEach(el => el.classList.remove('hidden-past'));
     }

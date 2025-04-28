@@ -5,6 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+    <!-- Add specific styles for list view if not already in styles.css -->
+    <style>
+        /* Reuse or adapt styles from manage.html or add new ones */
+        .event-item { /* Style for each event entry */
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px; /* Add margin between items */
+        }
+        .event-item.past-event { /* Style for past events */
+             opacity: 0.7;
+             border-left-color: #aaa;
+        }
+        .event-item .event-header { /* Style for header within item */
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #555;
+            font-size: 0.9em;
+        }
+        .event-item .user { font-weight: bold; color: #2c3e50; }
+        .event-item .time { color: #7f8c8d; font-size: 0.9em; }
+        .event-item .event-body pre { /* Style for message block */
+            margin: 0;
+            padding: 5px;
+            font-size: 0.95em;
+            line-height: 1.4;
+            background-color: #f0f0f0;
+            border: 1px solid #e0e0e0;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-width: 100%;
+            text-align: left;
+            box-sizing: border-box;
+        }
+         .event-item .event-body code {
+             font-family: Consolas, Monaco, 'Courier New', Courier, monospace, 'Microsoft YaHei', 'SimSun', 'Meiryo', 'Malgun Gothic', monospace;
+             color: #2F4F4F;
+         }
+         /* Ensure hidden-past works */
+         .event-item.hidden-past {
+             display: none !important;
+         }
+         /* Ensure style for today's events exists (copied from styles.css) */
+         .event-item.today {
+             border-left: 4px solid #e74c3c;
+             background-color: #fff5f5;
+         }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -21,31 +72,125 @@
 
         <div class="card">
             <h2>Event List</h2>
-            <div class="event-list"> {# Ensure this container exists #}
-                {% if events %}
-                    {% for event in events %}
-                    {# Ensure data-time attribute is present #}
-                    <div class="event {% if event.time == today %}today{% endif %}" data-id="{{ event.id }}" data-time="{{ event.time }}">
-                        <div class="event-header">
-                            <span class="user">{{ event.user }}</span>
-                            <span class="time">{{ event.time }}</span>
-                        </div>
-                        <div class="event-body">
-                             {# Display the pre-formatted message from the backend #}
-                             <pre><code>{{ event.display_message }}</code></pre>
-                        </div>
-                        <!-- No action buttons -->
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p>No events yet.</p>
-                {% endif %}
+            <!-- Replace table with a div container for list items -->
+            <div id="events-list-container" class="event-list">
+                <!-- Placeholder for loading message -->
+                <p id="loading-message">Loading events...</p>
             </div>
         </div>
     </div>
-    {# Ensure today's date is passed to JS #}
-    <script>window.todayDateStr = "{{ today }}";</script>
-    {# Ensure the main script is included #}
+
+    <script>
+        // Define today's date string in JS for client-side use
+        window.todayDateStr = new Date().toISOString().split('T')[0];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const eventsContainer = document.getElementById('events-list-container');
+            const loadingMessage = document.getElementById('loading-message');
+            const showPastToggle = document.getElementById('show-past-toggle'); // Get toggle checkbox
+
+            // --- Determine initial state for showing past events ---
+            // Read from localStorage, default to false (unchecked) if not set
+            const showPastInitial = localStorage.getItem('showPastEvents') === 'true';
+            // Set the checkbox state visually (script.js might do this too, but doing it here ensures it's set before rendering)
+            if (showPastToggle) {
+                showPastToggle.checked = showPastInitial;
+            }
+            // --- End initial state determination ---
+
+
+            fetch('/api/events/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(events => {
+                    // Clear the loading message
+                    if (loadingMessage) {
+                        loadingMessage.remove();
+                    }
+                    eventsContainer.innerHTML = ''; // Clear any previous content
+
+                    if (!events || events.length === 0) {
+                        eventsContainer.innerHTML = '<p>No events found.</p>';
+                        return;
+                    }
+
+                    events.forEach(event => {
+                        // Create the main div for the event item
+                        const eventDiv = document.createElement('div');
+                        eventDiv.classList.add('event-item', 'event'); // Add 'event' class for script.js compatibility
+                        eventDiv.setAttribute('data-id', event.id);
+                        eventDiv.setAttribute('data-time', event.time);
+
+                        const isPast = event.time < window.todayDateStr;
+                        const isToday = event.time === window.todayDateStr;
+
+                        // Apply classes based on date AND initial toggle state
+                        if (isPast) {
+                            eventDiv.classList.add('past-event');
+                            // Add 'hidden-past' directly if past and toggle is initially unchecked
+                            if (!showPastInitial) {
+                                eventDiv.classList.add('hidden-past');
+                            }
+                        } else if (isToday) {
+                            eventDiv.classList.add('today');
+                        }
+
+                        // Create header div
+                        const headerDiv = document.createElement('div');
+                        headerDiv.classList.add('event-header');
+                        headerDiv.innerHTML = `
+                            <span class="user">${escapeHtml(event.user)}</span>
+                            <span class="time">${escapeHtml(event.time)}</span>
+                        `;
+
+                        // Create body div
+                        const bodyDiv = document.createElement('div');
+                        bodyDiv.classList.add('event-body');
+                        const pre = document.createElement('pre');
+                        const code = document.createElement('code');
+                        // Use pre-formatted display_message or fallback
+                        code.textContent = event.display_message || JSON.stringify(event.message, null, 2);
+                        pre.appendChild(code);
+                        bodyDiv.appendChild(pre);
+
+                        // Append header and body to the main event div
+                        eventDiv.appendChild(headerDiv);
+                        eventDiv.appendChild(bodyDiv);
+
+                        // Append the event div to the container
+                        eventsContainer.appendChild(eventDiv);
+                    });
+
+                    // No need to call applyPastEventFilter here anymore for initial load,
+                    // as the initial state is handled during rendering.
+                    // The listener in script.js will handle subsequent toggles.
+                })
+                .catch(error => {
+                    console.error('Error fetching events:', error);
+                     if (loadingMessage) {
+                        loadingMessage.remove();
+                    }
+                    eventsContainer.innerHTML = '<p>Failed to load events. Please try again later.</p>';
+                });
+        });
+
+        // Helper function to escape HTML (simple version)
+        function escapeHtml(unsafe) {
+            if (unsafe === null || unsafe === undefined) return '';
+            return String(unsafe)
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+    </script>
+
+    {# Ensure the main script is included AFTER the fetch logic or DOMContentLoaded #}
     <script src="{{ url_for('static', path='/script.js') }}"></script>
 </body>
 </html>

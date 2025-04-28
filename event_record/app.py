@@ -17,7 +17,11 @@ class EventCreate(BaseModel):
     message: Any
     time: Optional[str] = None  # Accepts YYYY-MM-DD string
 
-app = FastAPI(title="Event Manager")
+app = FastAPI(
+    title="ArtRelease Event Manager",
+    description="API for creating, viewing, updating, and deleting art release events. Provides both HTML views and a JSON API.",
+    version="0.1.0" # Add version
+)
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 # Mount static files directory
@@ -40,54 +44,56 @@ def format_message_for_display(message: Any) -> str:
             return str(message)
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request): # Removed show_past parameter
-    """Serve the main HTML page (Event List Only)."""
-    events_raw = get_events()
-    today_str = datetime.now().strftime("%Y-%m-%d")
-
-    # No filtering here
-    events_filtered = events_raw
-
-    # Create a list of dictionaries for the template
-    events_for_template = []
-    for event in events_filtered:
-        event_dict = event.dict()
-        event_dict['display_message'] = format_message_for_display(event.message)
-        events_for_template.append(event_dict)
-
+async def read_root(request: Request):
+    """Serve the main HTML page structure."""
+    # Remove event fetching and processing from here
+    # The 'today' variable is also removed as it's not needed for server-side rendering anymore
     return templates.TemplateResponse("index.html", {
         "request": request,
-        "events": events_for_template,
-        "today": today_str,
+        # Remove "events" and "today" from the context passed to the template
     })
 
 @app.get("/manage", response_class=HTMLResponse)
 async def manage_events(request: Request): # Removed show_past parameter
     """Serve the event management page."""
+    # Keep this as is for now, as it might use server-side rendering differently
+    # or pass the JSON string for its own JS logic.
+    # If manage.html should also load dynamically, it needs similar changes.
     events_raw = get_events()
     today_str = datetime.now().strftime("%Y-%m-%d")
 
-    # No filtering here
-    events_filtered = events_raw
+    events_filtered = events_raw # No filtering
 
-    # Create a list of dictionaries for the template
     events_for_template = []
     for event in events_filtered:
         event_dict = event.dict()
         event_dict['display_message'] = format_message_for_display(event.message)
         events_for_template.append(event_dict)
 
-    # Serialize the *entire* list (no filtering) to a JSON string
     events_json_string = json.dumps(events_for_template, ensure_ascii=False)
 
     return templates.TemplateResponse("manage.html", {
         "request": request,
-        "events": events_for_template, # Pass full list for display
+        "events": events_for_template,
         "today": today_str,
-        "events_json": events_json_string, # Pass full list as JSON
+        "events_json": events_json_string,
     })
 
 # --- API Endpoints ---
+
+# Add a new GET endpoint to fetch all events as JSON, including formatted messages
+@app.get("/api/events/", response_model=List[dict]) # Return list of dicts
+async def get_events_json():
+    """Retrieve all events formatted for API consumption."""
+    events_raw = get_events()
+    events_for_api = []
+    for event in events_raw:
+        event_dict = event.dict()
+        # Add the formatted message directly for the client
+        event_dict['display_message'] = format_message_for_display(event.message)
+        events_for_api.append(event_dict)
+    return events_for_api
+
 
 @app.post("/api/events/", response_model=Event)
 async def create_event_json(event_data: EventCreate):
@@ -117,6 +123,7 @@ async def create_event_json(event_data: EventCreate):
     # Add event to database (which handles saving)
     added_event = add_event(event)
     return added_event
+
 
 @app.put("/api/events/{event_id}", response_model=Event)
 async def update_event_json(event_id: int, event_data: EventCreate):
