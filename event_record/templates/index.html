@@ -144,7 +144,7 @@
                         headerDiv.classList.add('event-header');
                         headerDiv.innerHTML = `
                             <span class="user">${escapeHtml(event.user)}</span>
-                            <span class="time">${escapeHtml(event.time)}</span>
+                            <span class="time">${escapeHtml(event.day_of_week)}, ${escapeHtml(event.time)}</span>
                         `;
 
                         // Create body div
