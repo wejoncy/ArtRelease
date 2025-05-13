@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import List, Optional, Any
-from datetime import datetime
+from datetime import datetime, date # Ensure date is imported
 import time
 import json
 import os
@@ -29,6 +29,14 @@ app.mount("/static", StaticFiles(directory=CUR_DIR+"/static"), name="static")
 
 # Set up templates
 templates = Jinja2Templates(directory=CUR_DIR+"/templates")
+
+def get_day_of_week(date_str: str) -> str:
+    """Converts a YYYY-MM-DD string to a short day name (e.g., Mon, Tue)."""
+    try:
+        dt_object = datetime.strptime(date_str, "%Y-%m-%d")
+        return dt_object.strftime("%a") # %a for short day name (Mon), %A for full (Monday)
+    except ValueError:
+        return "" # Return empty string or some indicator for invalid date
 
 def format_message_for_display(message: Any) -> str:
     """Formats message for HTML display, handling complex types."""
@@ -68,6 +76,7 @@ async def manage_events(request: Request): # Removed show_past parameter
     for event in events_filtered:
         event_dict = event.dict()
         event_dict['display_message'] = format_message_for_display(event.message)
+        event_dict['day_of_week'] = get_day_of_week(event.time) # Add day of week
         events_for_template.append(event_dict)
 
     events_json_string = json.dumps(events_for_template, ensure_ascii=False)
@@ -91,6 +100,7 @@ async def get_events_json():
         event_dict = event.dict()
         # Add the formatted message directly for the client
         event_dict['display_message'] = format_message_for_display(event.message)
+        event_dict['day_of_week'] = get_day_of_week(event.time) # Add day of week
         events_for_api.append(event_dict)
     return events_for_api
 
